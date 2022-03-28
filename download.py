@@ -46,9 +46,9 @@ def download_panopto_stream(stream_url: str, link_text: str, level: str):
     except Exception:
         pass
 
-def download_file(url: str, s_session_id: str, level: str):
+def download_file(url: str, JSESSIONID: str, level: str):
     try:
-        response = http.request("GET", url, headers={"Cookie" : "s_session_id="+s_session_id}, timeout=3)
+        response = http.request("GET", url, headers={"Cookie" : "JSESSIONID="+JSESSIONID}, timeout=3)
     except Exception as e:
         print(level + "└" + str(e))
         return
@@ -66,20 +66,20 @@ def download_file(url: str, s_session_id: str, level: str):
     else:
         print(level + "└" + output_file_path + " exists. Not downloading!")
 
-def download_submodule(submodule: dict, s_session_id: str, level: str, type_choices: dict):
+def download_submodule(submodule: dict, JSESSIONID: str, level: str, type_choices: dict):
     if type_choices['documents'] | type_choices['other']:
         for file in submodule.get('files', []):
             print(level + "Downloading : " + file)
-            download_file(file, s_session_id, level)
+            download_file(file, JSESSIONID, level)
     if type_choices['videos']:
         for video in submodule.get('videos', []):
             print(level + "Downloading video '%s'" % video['name'])
             download_panopto_stream(video['link'], video['name'], level + " ")
     for submodule in submodule.get('submodules', []):
         if submodule:
-            download_submodule(submodule, s_session_id, level + " ", type_choices)
+            download_submodule(submodule, JSESSIONID, level + " ", type_choices)
 
-def download(crawl_path: str, choices_path: str, s_session_id: str, type_choices: dict):
+def download(crawl_path: str, choices_path: str, JSESSIONID: str, type_choices: dict):
     choices_file = open(choices_path, "r")
     crawl_file = open(crawl_path, "r")
     choices = json.load(choices_file)
@@ -99,10 +99,12 @@ def download(crawl_path: str, choices_path: str, s_session_id: str, type_choices
     downloads_dir = os.getcwd()
     for module in pruned_crawl:
         print("Downloading module '%s'" % module['name'])
-        if not os.path.exists(module['name']):
-            os.mkdir(module['name'])
-        os.chdir(module['name'])
+        folder_name = module['name'].replace("/", "")
+        if not os.path.exists(folder_name):
+            os.mkdir(folder_name)
+        os.chdir(folder_name)
         for submodule in module['submodules']:
-            print(" Downloading submodule '%s'" % submodule['name'])
-            download_submodule(submodule, s_session_id, "  ", type_choices)
+            sub_folder_name = submodule['name'].replace("/", "")
+            print(" Downloading submodule '%s'" % sub_folder_name)
+            download_submodule(submodule, JSESSIONID, "  ", type_choices)
         os.chdir(downloads_dir)

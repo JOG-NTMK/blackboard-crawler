@@ -102,7 +102,7 @@ async def traverse_list(page: Page, level: str):
 
     content_root = page.url
     test = await page.cookies()
-    s_session_id = next(cookie['value'] for cookie in await page.cookies() if cookie['name'] == 'JSESSIONID')
+    JSESSIONID = next(cookie['value'] for cookie in await page.cookies() if cookie['name'] == 'JSESSIONID')
 
     for link, link_text, header in await page.JJeval("%(0)s .details a, %(0)s h3 a" % {'0': CONTENT},
                                                      "links => links.map(a => [a.href, a.innerText, a.parentElement.tagName == 'H3'])"):
@@ -117,7 +117,7 @@ async def traverse_list(page: Page, level: str):
             indices["videos"].append({'name': link_text, 'link': stream_url})
             await page.goto(content_root)
         elif "webapps" not in link:
-            indices["files"].append(get_real_filename(link, s_session_id, level))
+            indices["files"].append(get_real_filename(link, JSESSIONID, level))
         elif header and link not in page.url:
             print(level + "Descending into : '%s'" % link_text)
             await page.goto(link)
@@ -159,14 +159,14 @@ def get_stream_url(link: str, aspxauth: str):
         'StreamUrl']  # This may raise KeyError if the JSON returned is invalid
 
 
-def get_real_filename(url: str, s_session_id: str, level: str):
+def get_real_filename(url: str, JSESSIONID: str, level: str):
     if "bbcswebdav" in url:
         try:
             response = http.request(
                 'GET',
                 url,
                 retries=False,
-                headers={"Cookie": "s_session_id=" + s_session_id}
+                headers={"Cookie": "JSESSIONID=" + JSESSIONID}
             )
             url = "lyitbb.blackboard.com" + response.headers['Location']
         except Exception as e:
