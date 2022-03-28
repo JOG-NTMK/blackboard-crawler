@@ -1,6 +1,7 @@
 ## Credits
-The login phase, and the panopto video downloading code are not my own work.
-These parts were done by [Arch](https://github.com/ArchGryphon9362)
+Forked from https://github.com/nassir90/blackboard-crawler
+
+I just changed to work with LYIT Blackboard.
 
 ## Requirements
 
