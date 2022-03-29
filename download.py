@@ -58,15 +58,25 @@ def download_file(url: str, JSESSIONID: str, level: str):
     temp_file_path = output_file_path + ".uncompleted-write"
 
     if not os.path.isfile(output_file_path):
-        print(level + "└" + output_file_path + " does not exist. Downloading...")
-        temp_file = open(temp_file_path, "wb")
-        temp_file.write(response.data)
-        temp_file.close()
-        os.rename(temp_file_path, output_file_path)
+        try:
+            print(level + "└" + output_file_path + " does not exist. Downloading...")
+            temp_file = open(temp_file_path, "wb")
+            temp_file.write(response.data)
+            temp_file.close()
+            os.rename(temp_file_path, output_file_path)
+        except OSError as exc:
+            if exc.errno == 36:
+                print(level + "└" + output_file_path + " filename too long, skipping")
+            else:
+                raise
     else:
         print(level + "└" + output_file_path + " exists. Not downloading!")
 
 def download_submodule(submodule: dict, JSESSIONID: str, level: str, type_choices: dict):
+    sub_folder_name = submodule['name'].replace("/", "")
+    if not os.path.exists(sub_folder_name):
+        os.mkdir(sub_folder_name)
+    os.chdir(sub_folder_name)
     if type_choices['documents'] | type_choices['other']:
         for file in submodule.get('files', []):
             print(level + "Downloading : " + file)
@@ -78,6 +88,7 @@ def download_submodule(submodule: dict, JSESSIONID: str, level: str, type_choice
     for submodule in submodule.get('submodules', []):
         if submodule:
             download_submodule(submodule, JSESSIONID, level + " ", type_choices)
+    os.chdir("..")
 
 def download(crawl_path: str, choices_path: str, JSESSIONID: str, type_choices: dict):
     choices_file = open(choices_path, "r")

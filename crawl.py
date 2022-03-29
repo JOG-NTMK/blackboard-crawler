@@ -118,6 +118,11 @@ async def traverse_list(page: Page, level: str):
             await page.goto(content_root)
         elif "webapps" not in link:
             indices["files"].append(get_real_filename(link, JSESSIONID, level))
+        elif "listContent" in link and link_text and link_text.strip():
+            # checking for empty strings as can get stuck in a loop on empty folders
+            await page.goto(link)
+            indices["submodules"].append(await traverse_submodule(link, link_text, page))
+            # await page.goto(content_root)
         elif header and link not in page.url:
             print(level + "Descending into : '%s'" % link_text)
             await page.goto(link)
