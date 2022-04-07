@@ -126,7 +126,8 @@ async def main():
         await page.reload()
         await page.waitFor(1000)
         JSESSIONID = next(filter(lambda cookie: cookie['name'] == 'JSESSIONID', await page.cookies()))['value']
-        download('crawl.json', 'choices.json', JSESSIONID, type_choices=type_choices)
+        BbRouter = next(filter(lambda cookie: cookie['name'] == 'BbRouter', await page.cookies()))['value']
+        download('crawl.json', 'choices.json', JSESSIONID, BbRouter,type_choices=type_choices)
 
 
 debug = os.environ.get('DEBUG_BLACKBOARD_CRAWLER')
